@@ -34,7 +34,7 @@ void mouseSelectROI(int event,int x,int y,int flags,void *ustc)
   if (event == CV_EVENT_MOUSEMOVE && (flags & CV_EVENT_FLAG_LBUTTON))
   {
 	end_pt = Point2i(cur_pt.x,pre_pt.y+(cur_pt.x-pre_pt.x)/widthHeightRatio);
-	rectangle(tmp_3,pre_pt,end_pt,Scalar(0,255,0,0),1,8,0);
+	rectangle(tmp_3,pre_pt,end_pt,Scalar(0,255,0,0.5),1,8,0);
   }
   if (event == CV_EVENT_LBUTTONUP)
   {
@@ -55,6 +55,7 @@ int main(int argc, char** argv)
 	VideoWriter output_video;
 	//frame
 	int frame_num;
+	int start_frame;
 	Mat src_3, dst_3;
 	//kcf
 	KCFTracker tracker;
@@ -73,17 +74,16 @@ int main(int argc, char** argv)
 	{
 		namedWindow(VIDEO_WINDOW_NAME);
 	}
-	//frame
-	frame_num = 1;
+
 	//kcf
 	if(lab_flag == true)hog_flag = true;
 	tracker = KCFTracker(hog_flag, fixed_window_flag, multiscale_flag, lab_flag);
 	kcf_init_end_flag = false;
 
 	bool stop = false;
-	for (int fnum = 1;!stop;fnum++)
+	for (frame_num = 1;!stop; frame_num++)
 	{
-		cout<<fnum<<endl;
+		cout<< frame_num <<endl;
 		if (!input_video.read(src_3)){cout<<"video end"<<endl;waitKey(0); break;}
 
 		src_3.copyTo(dst_3);
@@ -101,10 +101,23 @@ int main(int argc, char** argv)
 			src_3.copyTo(tmp_3);
 			setMouseCallback(VIDEO_WINDOW_NAME,mouseSelectROI,0);
 		}
-		frame_num++;
+
+		//jump to target frame
+		if (frame_num == 1)
+		{
+			cout << "jump to witch frame:";
+			cin >> start_frame;
+		}
+		if (start_frame > frame_num)
+		{
+			src_3.copyTo(tmp_3);
+			continue;
+		}
+
 		//imshow image for roi selecting
 		if(select_end_flag == false)
 		{
+			cout << "select area" << endl;
 			imshow(VIDEO_WINDOW_NAME, tmp_3);
 			waitKey(0);
 			src_3.copyTo(tmp_3);
