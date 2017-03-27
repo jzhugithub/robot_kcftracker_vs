@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 	bool kcf_init_end_flag;
 	
 	//initial
-	if(!input_video.isOpened()){cout<<"视频读取错误"<<endl;system("puase");return -1;}
+	if(!input_video.isOpened()){cout<<"video open failed"<<endl;system("puase");return -1;}
 	if(show_video_flag)
 	{
 		namedWindow(VIDEO_WINDOW_NAME);
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	for (int fnum = 1;!stop;fnum++)
 	{
 		cout<<fnum<<endl;
-		if (!input_video.read(src_3)){cout<<"视频结束"<<endl;waitKey(0); break;}//获取视频帧
+		if (!input_video.read(src_3)){cout<<"video end"<<endl;waitKey(0); break;}
 
 		src_3.copyTo(dst_3);
 		//cout<<"rows"<<src_3.rows<<endl;
@@ -129,16 +129,19 @@ int main(int argc, char** argv)
 		//kcf updata
 		track_result = tracker.update(src_3);
 		rectangle( dst_3, Point( track_result.x, track_result.y ), Point( track_result.x+track_result.width, track_result.y+track_result.height), Scalar( 0, 255, 255 ), 1, 8 );
-
+		
 		//save set
 		if(save_set_flag)
 		{
-			strstream ss;
-			string s;
-			ss<<set_folder<<frame_num<<".jpg";
-			ss>>s;
-			imwrite(s,src_3(track_result));
-			cout<<s<<endl;
+			if (track_result.x > 0 && track_result.y > 0 && track_result.x + track_result.width < src_3.cols && track_result.y + track_result.height < src_3.rows)
+			{
+				strstream ss;
+				string s;
+				ss << set_folder << frame_num << ".jpg";
+				ss >> s;
+				imwrite(s, src_3(track_result));
+				cout << s << endl;
+			}
 		}
 
 		//save and show video
